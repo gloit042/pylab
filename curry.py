@@ -1,0 +1,71 @@
+import functools as f
+from inspect import signature
+import sys
+from copy import deepcopy
+
+'A curry util'
+'only availble for constant arguments function'
+
+class C(object):
+
+    'Curry function object'
+
+    def __init__(self, func, chain = []):
+        if func == None:
+            if chain == []:
+                print('Error: empty input')
+            else:
+                self.chain = deepcopy(chain)
+            return
+        if callable(func):
+            try:
+                n = len(signature(func).parameters)
+            except ValueError as e:
+                print('Varied arguments function cannot be currified: ', func)
+                return None
+            if len != 0:
+                self.chain = deepcopy(chain)
+                self.chain.append(func)
+            else:
+                print('Error: not callable')
+        else:
+            print('Error: not callable')
+
+    def __call__(self, *feed):
+        func = self.chain[-1]
+        nfunc = f.partial(func, feed[0])
+        n = len(signature(nfunc).parameters)
+        if len(feed) > 1:
+            if n == 0:
+                if len(self.chain) == 1:
+                    return nfunc()(feed[1])
+                else:
+                    feed[0] = nfunc()
+                    return C(None, self,chain[0:-1])(*feed)
+            else:
+                if len(self.chain) == 1:
+                    return C(None, [nfunc])(*feed[1:])
+                else:
+                    return C(None, self.chain[0:-1] + [nfunc])(*feed[1:])
+        if n == 0:
+            if len(self.chain) == 1:
+                return nfunc()
+            else:
+                return C(None, self.chain[0:-1])(nfunc())
+        else:
+            if len(self.chain) == 1:
+                return C(None, [nfunc])
+            else:
+                return C(None, self.chain[0:-1] + [nfunc])
+
+    def __pow__(self, other):
+        return C(__id__, self.chain + other.chain)
+
+
+def __id__(x):
+    return x
+
+add = C(lambda x, y: x + y)
+minus = C(lambda y, x: x - y)
+multiply = C(lambda x, y: x * y)
+divide = C(lambda y, x: x / y)
