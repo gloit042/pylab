@@ -59,13 +59,40 @@ class C(object):
                 return C(None, self.chain[0:-1] + [nfunc])
 
     def __pow__(self, other):
+        if not callable(other):
+            raise TypeError('Not callable: %s' % other)
         return C(__id__, self.chain + other.chain)
 
 
 def __id__(x):
     return x
 
+def __foldl__(f, init, l):
+    if len(l) > 1:
+        return __foldl__(f, f(init, l[0]), l[1:])
+    else:
+        return f(init, l[0])
+
+def __concat_two__(l, r):
+    if type(l) is not type([]):
+        print('Not a list: %s' % l)
+        return None
+    if type(r) is not type([]):
+        print('Not a list: %s' % r)
+        return None
+    return l + r
+
+
 add = C(lambda x, y: x + y)
 minus = C(lambda y, x: x - y)
 multiply = C(lambda x, y: x * y)
 divide = C(lambda y, x: x / y)
+
+M = map
+map = C(lambda x, y: list(M(x,y)))
+
+foldl = C(__foldl__)
+
+take = C(lambda x, y: y[0:x])
+concat = C(lambda x:foldl (C(__concat_two__)) ([]) (x))
+
