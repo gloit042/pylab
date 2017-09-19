@@ -88,8 +88,8 @@ minus = C(lambda y, x: x - y)
 multiply = C(lambda x, y: x * y)
 divide = C(lambda y, x: x / y)
 
-M = map
-map = C(lambda x, y: list(M(x,y)))
+__lib_map__ = map
+map = C(lambda x, y: __lib_map__(x,y))
 
 foldl = C(__foldl__)
 
