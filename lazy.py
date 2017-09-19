@@ -10,6 +10,7 @@ class FIterable(object):
     def __init__(self, init_val, iterate_func):
         self.first = True
         self.r = init_val
+        self.init = init_val
         self.next_func = iterate_func
     def __iter__(self):
         return self
@@ -20,9 +21,12 @@ class FIterable(object):
         
         self.r = self.next_func(self.r)
         return self.r
+    def new(self):
+        return FIterable(self.init, self.next_func)
 
 class LazyList(object):
-    def __init__(self, init_val, 
+    def __init__(self,
+            init_val = 0, 
             iterate_func = lambda x: x + 1,
             filter_func = lambda x: True,
             drop_while = lambda x: False):
@@ -118,9 +122,10 @@ def __take__(n, L):
 
 __lib_filter__ = filter
 def __filter__(f, L):
-    T = deepcopy(L)
-    T.__evaled__ = list(__lib_filter__(f, L.__evaled__))
+    T = LazyList()
     T.filter_func = lambda x: f(x) and L.filter_func(x)
+    T.drop_while = L.drop_while
+    T.__not_evaled__ = L.__not_evaled__.new()
     return T
 
 def __take_while__(f, L):
