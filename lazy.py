@@ -87,15 +87,13 @@ class LazyList(object):
         raise TryModError("Lazy list can't be modified!")
 
     def eval_all(self):
-        t = self.iterate_func(self.__evaled__[-1])
-        while not self.stop:
-            if self.__filter_func__(t):
-                if self.__drop_while__(t):
-                    self.stop = True;
+        if not self.stop:
+            for i in self.__not_evaled__:
+                if self.__drop_while__(i):
+                    self.stop = True
                     break
-                self.__len__ = self.__len__ + 1
-                self.__evaled__.append(t)
-            t = self.iterate_func(t)
+                if self.__filter_func__(i):
+                    self.__evaled__.append(i)
 
 
 
@@ -113,12 +111,9 @@ def __take__(n, L):
     if n <= 0:
         raise TakeError("can't take non-positive number elements")
     i = 0
-    r = []
-    for v in L: 
-        r.append(v)
-        i = i + 1
-        if i == n:
-            return r
+    _ = L[n - 1]
+    r = L.__evaled__[0:n]
+    return r
 
 __lib_filter__ = filter
 def __filter__(f, L):
@@ -129,13 +124,14 @@ def __filter__(f, L):
     return T
 
 def __take_while__(f, L):
-    s = iter(L)
-    r = []
-    t = s.__next__()
-    while f(t):
-        r.append(t)
-        t = s.__next__()
-    return r
+    S = deepcopy(L)
+    S.__drop_while__ = lambda x: not f(x) or L.__drop_while__(x)
+    t = list(map(S.__drop_while__, S.__evaled__))
+    if True in t:
+        return S.__evaled__[:t.index(True) + 1]
+    else:
+        S.eval_all()
+        return S.__evaled__[:]
 
 filter = c.C(__filter__)
 take = c.C(__take__)
