@@ -11,7 +11,7 @@ class FIterable(object):
         self.first = True
         self.r = init_val
         self.init = init_val
-        self.next_func = iterate_func
+        self.__next_func__ = iterate_func
     def __iter__(self):
         return self
     def __next__(self):
@@ -19,10 +19,10 @@ class FIterable(object):
             self.first = False
             return self.r
         
-        self.r = self.next_func(self.r)
+        self.r = self.__next_func__(self.r)
         return self.r
     def new(self):
-        return FIterable(self.init, self.next_func)
+        return FIterable(self.init, self.__next_func__)
 
 class LazyList(object):
     def __init__(self,
@@ -33,8 +33,8 @@ class LazyList(object):
         self.__len__ = 0
         self.__evaled__ = []
         self.__not_evaled__ = FIterable(init_val, iterate_func)
-        self.filter_func = filter_func
-        self.drop_while = drop_while
+        self.__filter_func__ = filter_func
+        self.__drop_while__ = drop_while
         self.stop = False
 
     def __repr__(self):
@@ -74,8 +74,8 @@ class LazyList(object):
 
         while self.__len__ <= key:
             t = self.__not_evaled__.__next__()
-            if self.filter_func(t):
-                if self.drop_while(t):
+            if self.__filter_func__(t):
+                if self.__drop_while__(t):
                     self.stop = True;
                     raise IndexError("Out of range")
                 self.__len__ = self.__len__ + 1
@@ -89,8 +89,8 @@ class LazyList(object):
     def eval_all(self):
         t = self.iterate_func(self.__evaled__[-1])
         while not self.stop:
-            if self.filter_func(t):
-                if self.drop_while(t):
+            if self.__filter_func__(t):
+                if self.__drop_while__(t):
                     self.stop = True;
                     break
                 self.__len__ = self.__len__ + 1
